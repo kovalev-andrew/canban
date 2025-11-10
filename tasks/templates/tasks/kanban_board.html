@@ -278,14 +278,34 @@
                         body: formData
                     })
                     .then(response => {
-                        if (response.ok) {
-                            location.reload();
+                        // Check if response is JSON
+                        const contentType = response.headers.get('content-type');
+                        if (contentType && contentType.includes('application/json')) {
+                            return response.json();
                         } else {
-                            console.error('Error submitting form');
+                            // If not JSON (e.g., redirect or error), reload page
+                            if (response.ok || response.status === 302) {
+                                closeAddModal();
+                                location.reload();
+                            } else {
+                                throw new Error('Server returned non-JSON response');
+                            }
+                        }
+                    })
+                    .then(data => {
+                        if (data && data.success) {
+                            // Close modal first
+                            closeAddModal();
+                            // Then reload page to show new task
+                            location.reload();
+                        } else if (data) {
+                            console.error('Error creating task:', data.error || 'Unknown error');
+                            alert('Error creating task: ' + (data.error || 'Unknown error'));
                         }
                     })
                     .catch(error => {
                         console.error('Error:', error);
+                        alert('Error creating task. Please try again.');
                     });
                 });
             }
@@ -301,14 +321,34 @@
                         body: formData
                     })
                     .then(response => {
-                        if (response.ok) {
-                            location.reload();
+                        // Check if response is JSON
+                        const contentType = response.headers.get('content-type');
+                        if (contentType && contentType.includes('application/json')) {
+                            return response.json();
                         } else {
-                            console.error('Error submitting form');
+                            // If not JSON (e.g., redirect or error), reload page
+                            if (response.ok || response.status === 302) {
+                                closeEditModal();
+                                location.reload();
+                            } else {
+                                throw new Error('Server returned non-JSON response');
+                            }
+                        }
+                    })
+                    .then(data => {
+                        if (data && data.success) {
+                            // Close modal first
+                            closeEditModal();
+                            // Then reload page to show updated task
+                            location.reload();
+                        } else if (data) {
+                            console.error('Error updating task:', data.error || 'Unknown error');
+                            alert('Error updating task: ' + (data.error || 'Unknown error'));
                         }
                     })
                     .catch(error => {
                         console.error('Error:', error);
+                        alert('Error updating task. Please try again.');
                     });
                 });
             }

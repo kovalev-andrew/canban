@@ -39,21 +39,20 @@ def create_task(request):
             priority=priority,
             due_date=due_date
         )
-        if request.headers.get('Content-Type') == 'application/json':
-            return JsonResponse({
-                'success': True,
-                'task': {
-                    'id': task.id,
-                    'title': task.title,
-                    'description': task.description,
-                    'status': task.status,
-                    'priority': task.priority,
-                    'due_date': str(task.due_date) if task.due_date else None,
-                }
-            })
-        return redirect('kanban_board')
+        # Always return JSON for AJAX requests
+        return JsonResponse({
+            'success': True,
+            'task': {
+                'id': task.id,
+                'title': task.title,
+                'description': task.description,
+                'status': task.status,
+                'priority': task.priority,
+                'due_date': str(task.due_date) if task.due_date else None,
+            }
+        })
     
-    return JsonResponse({'success': False, 'error': 'Title is required'})
+    return JsonResponse({'success': False, 'error': 'Title is required'}, status=400)
 
 
 @require_http_methods(["POST"])
@@ -93,19 +92,18 @@ def update_task(request, task_id):
     
     if task.title:
         task.save()
-        if request.headers.get('Content-Type') == 'application/json':
-            return JsonResponse({
-                'success': True,
-                'task': {
-                    'id': task.id,
-                    'title': task.title,
-                    'description': task.description,
-                    'status': task.status,
-                    'priority': task.priority,
-                    'due_date': str(task.due_date) if task.due_date else None,
-                }
-            })
-        return redirect('kanban_board')
+        # Always return JSON for AJAX requests
+        return JsonResponse({
+            'success': True,
+            'task': {
+                'id': task.id,
+                'title': task.title,
+                'description': task.description,
+                'status': task.status,
+                'priority': task.priority,
+                'due_date': str(task.due_date) if task.due_date else None,
+            }
+        })
     
-    return JsonResponse({'success': False, 'error': 'Title is required'})
+    return JsonResponse({'success': False, 'error': 'Title is required'}, status=400)
 
