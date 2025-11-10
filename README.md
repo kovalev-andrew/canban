@@ -101,3 +101,59 @@ To remove volumes (database data):
 docker-compose down -v
 ```
 
+## Deployment on Railway
+
+This project is configured to deploy on Railway. Here's how:
+
+### Prerequisites
+- Railway account (sign up at https://railway.app)
+- Railway CLI (optional, for local testing)
+
+### Steps
+
+1. **Create a new Railway project:**
+   - Go to Railway dashboard
+   - Click "New Project"
+   - Select "Deploy from GitHub repo" or "Empty Project"
+
+2. **Add PostgreSQL database:**
+   - In your Railway project, click "New"
+   - Select "Database" → "Add PostgreSQL"
+   - Railway will automatically create a `DATABASE_URL` environment variable
+
+3. **Deploy your application:**
+   - If deploying from GitHub, connect your repository
+   - Railway will automatically detect the Dockerfile and build your app
+   - Or use Railway CLI: `railway up`
+
+4. **Set environment variables:**
+   - Go to your service → Variables
+   - Add the following variables:
+     - `SECRET_KEY`: Generate a secure key (e.g., using `python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"`)
+     - `DEBUG`: Set to `0` for production
+     - `ALLOWED_HOSTS`: Your Railway domain (e.g., `your-app.railway.app`)
+   - Note: `DATABASE_URL` is automatically set by Railway when you add PostgreSQL
+
+5. **The application will automatically:**
+   - Run migrations on startup
+   - Collect static files
+   - Start the Django server
+
+### Railway Configuration
+
+The project includes:
+- `railway.json`: Railway-specific configuration
+- `start.sh`: Startup script that runs migrations and starts the server
+- `Dockerfile`: Configured to use Railway's `PORT` environment variable
+
+### Troubleshooting
+
+If you encounter database connection errors:
+- Ensure PostgreSQL service is running in Railway
+- Check that `DATABASE_URL` is set correctly
+- Verify the database is accessible from your service
+
+If static files aren't loading:
+- Check that `collectstatic` ran successfully in the build logs
+- Verify `STATIC_ROOT` is set correctly in settings.py
+

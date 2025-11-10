@@ -21,9 +21,13 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy project
 COPY . /app/
 
-# Expose port
-EXPOSE 8000
+# Make start script executable
+RUN chmod +x start.sh || true
+
+# Expose port (Railway uses PORT env variable)
+EXPOSE ${PORT:-8000}
 
 # Run the application
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+# Railway provides PORT environment variable
+CMD ["./start.sh"]
 

@@ -30,7 +30,22 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-change-this-in-production'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', '0') == '1'
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+# Allow all hosts if ALLOWED_HOSTS is set, otherwise use defaults
+allowed_hosts_env = os.getenv('ALLOWED_HOSTS')
+if allowed_hosts_env:
+    ALLOWED_HOSTS = [host.strip() for host in allowed_hosts_env.split(',')]
+else:
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+
+# For Railway deployment, allow Railway domain
+# Railway provides RAILWAY_PUBLIC_DOMAIN or we can use wildcard
+railway_domain = os.getenv('RAILWAY_PUBLIC_DOMAIN')
+if railway_domain:
+    ALLOWED_HOSTS.append(railway_domain)
+elif os.getenv('RAILWAY_ENVIRONMENT'):
+    # Allow all Railway subdomains
+    ALLOWED_HOSTS.append('.railway.app')
+    ALLOWED_HOSTS.append('.up.railway.app')
 
 
 # Application definition
@@ -79,16 +94,59 @@ WSGI_APPLICATION = 'canban.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME', 'canban_db'),
-        'USER': os.getenv('DB_USER', 'canban_user'),
-        'PASSWORD': os.getenv('DB_PASSWORD', 'canban_password'),
-        'HOST': os.getenv('DB_HOST', 'db'),
-        'PORT': os.getenv('DB_PORT', '5432'),
+# Support DATABASE_URL from Railway or other platforms
+DATABASE_URL = os.getenv('DATABASE_URL')
+
+if DATABASE_URL:
+    # Parse DATABASE_URL (format: postgresql://user:password@host:port/dbname)
+    from urllib.parse import urlparse
+    try:
+        # Handle postgres:// and postgresql://
+        if DATABASE_URL.startswith('postgres://'):
+            DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
+        
+        parsed = urlparse(DATABASE_URL)
+        
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.postgresql',
+                'NAME': parsed.path[1:],  # Remove leading '/'
+                'USER': parsed.username,
+                'PASSWORD': parsed.password,
+                'HOST': parsed.hostname,
+                'PORT': parsed.port or '5432',
+            }
+        }
+        
+        # Add SSL if specified in query parameters
+        if parsed.query and 'sslmode' in parsed.query:
+            DATABASES['default']['OPTIONS'] = {
+                'sslmode': 'require'
+            }
+    except Exception as e:
+        # Fallback to individual environment variables if parsing fails
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.postgresql',
+                'NAME': os.getenv('DB_NAME', 'canban_db'),
+                'USER': os.getenv('DB_USER', 'canban_user'),
+                'PASSWORD': os.getenv('DB_PASSWORD', 'canban_password'),
+                'HOST': os.getenv('DB_HOST', 'db'),
+                'PORT': os.getenv('DB_PORT', '5432'),
+            }
+        }
+else:
+    # Use individual environment variables or defaults
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv('DB_NAME', 'canban_db'),
+            'USER': os.getenv('DB_USER', 'canban_user'),
+            'PASSWORD': os.getenv('DB_PASSWORD', 'canban_password'),
+            'HOST': os.getenv('DB_HOST', 'db'),
+            'PORT': os.getenv('DB_PORT', '5432'),
+        }
     }
-}
 
 
 # Password validation
