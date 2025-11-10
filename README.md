@@ -1,6 +1,6 @@
-# Django Canban Project
+# Django Kanban Project
 
-A dockerized Django project ready for development.
+A dockerized Django project with a beautiful kanban board for managing daily tasks.
 
 ## Prerequisites
 
@@ -30,7 +30,7 @@ A dockerized Django project ready for development.
    ```
 
 5. **Access the application:**
-   - Django app: http://localhost:8000
+   - Kanban Board: http://localhost:8000 (home page)
    - Admin panel: http://localhost:8000/admin
 
 ## Development
@@ -57,11 +57,24 @@ The PostgreSQL database is accessible at:
 - User: canban_user
 - Password: canban_password
 
+## Features
+
+- **Kanban Board**: Drag-and-drop task management with three columns (To Do, In Progress, Done)
+- **Task Management**: Create, edit, and delete tasks with priorities and due dates
+- **Modern UI**: Beautiful, responsive design with smooth animations
+- **Priority Levels**: Low, Medium, and High priority indicators
+- **Due Dates**: Track task deadlines with overdue highlighting
+
 ## Project Structure
 
 ```
 canban/
 ├── canban/          # Django project settings
+├── tasks/           # Kanban board app
+│   ├── models.py    # Task model
+│   ├── views.py     # Task views
+│   ├── templates/   # HTML templates
+│   └── static/      # CSS styles
 ├── manage.py        # Django management script
 ├── requirements.txt # Python dependencies
 ├── Dockerfile       # Docker image configuration

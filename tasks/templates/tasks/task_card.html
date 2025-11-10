@@ -1,0 +1,29 @@
+<div class="task-card" 
+     data-task-id="{{ task.id }}" 
+     draggable="true" 
+     ondragstart="drag(event)"
+     data-priority="{{ task.priority }}">
+    <div class="task-header">
+        <span class="priority-badge priority-{{ task.priority }}">{{ task.get_priority_display }}</span>
+        <div class="task-actions">
+            <button class="btn-icon" onclick="openEditModal({{ task.id }}, '{{ task.title|escapejs }}', '{{ task.description|escapejs }}', '{{ task.priority }}', '{{ task.due_date|default:"" }}')" title="Edit">
+                ✏️
+            </button>
+            <button class="btn-icon" onclick="deleteTask({{ task.id }})" title="Delete">
+                🗑️
+            </button>
+        </div>
+    </div>
+    <h3 class="task-title">{{ task.title }}</h3>
+    {% if task.description %}
+        <p class="task-description">{{ task.description }}</p>
+    {% endif %}
+    {% if task.due_date %}
+        <div class="task-footer">
+            <span class="due-date {% if task.due_date and task.due_date < today %}overdue{% endif %}">
+                📅 {{ task.due_date|date:"M d, Y" }}
+            </span>
+        </div>
+    {% endif %}
+</div>
+
