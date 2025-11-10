@@ -150,6 +150,10 @@ The project includes:
 
 ### Troubleshooting
 
+**⚠️ Если вы видите ошибку 502 Bad Gateway:**
+
+См. подробные инструкции в файле **[RAILWAY_502_TROUBLESHOOTING.md](RAILWAY_502_TROUBLESHOOTING.md)**
+
 **⚠️ Если вы видите ошибку "DATABASE_URL or database connection variables must be set":**
 
 См. подробные инструкции в файле **[RAILWAY_SETUP.md](RAILWAY_SETUP.md)**

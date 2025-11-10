@@ -37,15 +37,26 @@ if allowed_hosts_env:
 else:
     ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
-# For Railway deployment, allow Railway domain
+# For Railway deployment, allow Railway domains
 # Railway provides RAILWAY_PUBLIC_DOMAIN or we can use wildcard
 railway_domain = os.getenv('RAILWAY_PUBLIC_DOMAIN')
 if railway_domain:
     ALLOWED_HOSTS.append(railway_domain)
-elif os.getenv('RAILWAY_ENVIRONMENT'):
+
+# Check if we're on Railway (multiple ways to detect)
+IS_RAILWAY_DEPLOY = (
+    os.getenv('RAILWAY_ENVIRONMENT') is not None or
+    os.getenv('RAILWAY_SERVICE_NAME') is not None or
+    os.getenv('RAILWAY_PROJECT_NAME') is not None or
+    railway_domain is not None
+)
+
+if IS_RAILWAY_DEPLOY:
     # Allow all Railway subdomains
-    ALLOWED_HOSTS.append('.railway.app')
-    ALLOWED_HOSTS.append('.up.railway.app')
+    if '.railway.app' not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append('.railway.app')
+    if '.up.railway.app' not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append('.up.railway.app')
 
 
 # Application definition
