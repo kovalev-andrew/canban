@@ -97,8 +97,13 @@ WSGI_APPLICATION = 'canban.wsgi.application'
 # Support DATABASE_URL from Railway or other platforms
 DATABASE_URL = os.getenv('DATABASE_URL')
 
-# Check if we're on Railway (Railway sets RAILWAY_ENVIRONMENT)
-IS_RAILWAY = os.getenv('RAILWAY_ENVIRONMENT') is not None
+# Check if we're on Railway (multiple ways to detect)
+# Railway sets RAILWAY_ENVIRONMENT, RAILWAY_SERVICE_NAME, or PORT
+IS_RAILWAY = (
+    os.getenv('RAILWAY_ENVIRONMENT') is not None or
+    os.getenv('RAILWAY_SERVICE_NAME') is not None or
+    os.getenv('RAILWAY_PROJECT_NAME') is not None
+)
 
 if DATABASE_URL:
     # Parse DATABASE_URL (format: postgresql://user:password@host:port/dbname)
@@ -164,12 +169,19 @@ else:
     db_password = os.getenv('PGPASSWORD') or os.getenv('DB_PASSWORD', 'canban_password')
     db_port = os.getenv('PGPORT') or os.getenv('DB_PORT', '5432')
     
-    # On Railway, require database connection variables
-    if IS_RAILWAY and not db_host:
-        raise ValueError(
-            "DATABASE_URL or database connection variables (PGHOST, PGDATABASE, etc.) must be set. "
-            "Please ensure PostgreSQL service is connected in Railway and DATABASE_URL is available."
+    # On Railway, check if database is configured
+    if IS_RAILWAY and not db_host and not DATABASE_URL:
+        # Print warning but don't fail - allow the app to start
+        # The actual connection error will be more informative
+        import sys
+        print(
+            "WARNING: Running on Railway but DATABASE_URL or database connection variables are not set.\n"
+            "Please ensure PostgreSQL service is connected in Railway.\n"
+            "The app will attempt to connect, but database operations will fail until configured.",
+            file=sys.stderr
         )
+        # Use a placeholder that will fail with a clear error message
+        db_host = 'railway-postgres-not-configured'
     
     DATABASES = {
         'default': {
@@ -182,7 +194,7 @@ else:
         }
     }
     
-    if IS_RAILWAY:
+    if IS_RAILWAY and db_host != 'railway-postgres-not-configured':
         DATABASES['default']['OPTIONS'] = {
             'sslmode': 'require'
         }

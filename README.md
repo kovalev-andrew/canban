@@ -150,7 +150,17 @@ The project includes:
 
 ### Troubleshooting
 
-If you encounter database connection errors:
+**⚠️ Если вы видите ошибку "DATABASE_URL or database connection variables must be set":**
+
+См. подробные инструкции в файле **[RAILWAY_SETUP.md](RAILWAY_SETUP.md)**
+
+Краткое решение:
+1. Убедитесь, что PostgreSQL добавлен в ваш Railway проект
+2. Проверьте, что оба сервиса (web и PostgreSQL) в одном проекте
+3. В web-сервисе → Variables проверьте наличие `DATABASE_URL`
+4. Если `DATABASE_URL` отсутствует - добавьте его вручную из PostgreSQL сервиса
+
+**Другие проблемы:**
 
 1. **Check DATABASE_URL is set:**
    - Go to your web service → Variables
