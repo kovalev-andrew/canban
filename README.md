@@ -120,6 +120,8 @@ This project is configured to deploy on Railway. Here's how:
    - In your Railway project, click "New"
    - Select "Database" → "Add PostgreSQL"
    - Railway will automatically create a `DATABASE_URL` environment variable
+   - **Important**: Make sure the PostgreSQL service is in the same project as your web service
+   - Railway will automatically share the `DATABASE_URL` variable between services in the same project
 
 3. **Deploy your application:**
    - If deploying from GitHub, connect your repository
@@ -149,9 +151,30 @@ The project includes:
 ### Troubleshooting
 
 If you encounter database connection errors:
-- Ensure PostgreSQL service is running in Railway
-- Check that `DATABASE_URL` is set correctly
-- Verify the database is accessible from your service
+
+1. **Check DATABASE_URL is set:**
+   - Go to your web service → Variables
+   - Verify that `DATABASE_URL` is present (Railway should set this automatically when PostgreSQL is added)
+   - If `DATABASE_URL` is missing:
+     - Ensure PostgreSQL service is in the same Railway project
+     - Check that PostgreSQL service is running
+     - Try redeploying your web service
+
+2. **Verify PostgreSQL connection:**
+   - Ensure PostgreSQL service is running in Railway
+   - Check that the database is accessible from your service
+   - In Railway, both services should be in the same project for automatic variable sharing
+
+3. **Manual DATABASE_URL setup (if needed):**
+   - If Railway doesn't automatically set `DATABASE_URL`, you can get it from:
+     - PostgreSQL service → Connect → Connection Parameters
+   - Format: `postgresql://user:password@host:port/database`
+   - Add it manually to your web service variables
+
+4. **Check logs:**
+   - View deployment logs in Railway dashboard
+   - Look for database connection errors
+   - Check if migrations are running successfully
 
 If static files aren't loading:
 - Check that `collectstatic` ran successfully in the build logs

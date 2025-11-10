@@ -97,6 +97,9 @@ WSGI_APPLICATION = 'canban.wsgi.application'
 # Support DATABASE_URL from Railway or other platforms
 DATABASE_URL = os.getenv('DATABASE_URL')
 
+# Check if we're on Railway (Railway sets RAILWAY_ENVIRONMENT)
+IS_RAILWAY = os.getenv('RAILWAY_ENVIRONMENT') is not None
+
 if DATABASE_URL:
     # Parse DATABASE_URL (format: postgresql://user:password@host:port/dbname)
     from urllib.parse import urlparse
@@ -110,7 +113,7 @@ if DATABASE_URL:
         DATABASES = {
             'default': {
                 'ENGINE': 'django.db.backends.postgresql',
-                'NAME': parsed.path[1:],  # Remove leading '/'
+                'NAME': parsed.path[1:] if parsed.path.startswith('/') else parsed.path,  # Remove leading '/'
                 'USER': parsed.username,
                 'PASSWORD': parsed.password,
                 'HOST': parsed.hostname,
@@ -118,35 +121,71 @@ if DATABASE_URL:
             }
         }
         
-        # Add SSL if specified in query parameters
-        if parsed.query and 'sslmode' in parsed.query:
+        # Add SSL if specified in query parameters or if on Railway
+        if (parsed.query and 'sslmode' in parsed.query) or IS_RAILWAY:
             DATABASES['default']['OPTIONS'] = {
                 'sslmode': 'require'
             }
     except Exception as e:
         # Fallback to individual environment variables if parsing fails
+        db_host = os.getenv('PGHOST') or os.getenv('DB_HOST')
+        db_name = os.getenv('PGDATABASE') or os.getenv('DB_NAME', 'canban_db')
+        db_user = os.getenv('PGUSER') or os.getenv('DB_USER', 'canban_user')
+        db_password = os.getenv('PGPASSWORD') or os.getenv('DB_PASSWORD', 'canban_password')
+        db_port = os.getenv('PGPORT') or os.getenv('DB_PORT', '5432')
+        
+        if not db_host and IS_RAILWAY:
+            raise ValueError(
+                "DATABASE_URL or database connection variables must be set. "
+                "Please ensure PostgreSQL service is connected in Railway."
+            )
+        
         DATABASES = {
             'default': {
                 'ENGINE': 'django.db.backends.postgresql',
-                'NAME': os.getenv('DB_NAME', 'canban_db'),
-                'USER': os.getenv('DB_USER', 'canban_user'),
-                'PASSWORD': os.getenv('DB_PASSWORD', 'canban_password'),
-                'HOST': os.getenv('DB_HOST', 'db'),
-                'PORT': os.getenv('DB_PORT', '5432'),
+                'NAME': db_name,
+                'USER': db_user,
+                'PASSWORD': db_password,
+                'HOST': db_host or 'db',  # Only use 'db' as fallback for local development
+                'PORT': db_port,
             }
         }
+        
+        if IS_RAILWAY:
+            DATABASES['default']['OPTIONS'] = {
+                'sslmode': 'require'
+            }
 else:
     # Use individual environment variables or defaults
+    # Railway uses PGHOST, PGDATABASE, PGUSER, PGPASSWORD, PGPORT
+    db_host = os.getenv('PGHOST') or os.getenv('DB_HOST')
+    db_name = os.getenv('PGDATABASE') or os.getenv('DB_NAME', 'canban_db')
+    db_user = os.getenv('PGUSER') or os.getenv('DB_USER', 'canban_user')
+    db_password = os.getenv('PGPASSWORD') or os.getenv('DB_PASSWORD', 'canban_password')
+    db_port = os.getenv('PGPORT') or os.getenv('DB_PORT', '5432')
+    
+    # On Railway, require database connection variables
+    if IS_RAILWAY and not db_host:
+        raise ValueError(
+            "DATABASE_URL or database connection variables (PGHOST, PGDATABASE, etc.) must be set. "
+            "Please ensure PostgreSQL service is connected in Railway and DATABASE_URL is available."
+        )
+    
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.getenv('DB_NAME', 'canban_db'),
-            'USER': os.getenv('DB_USER', 'canban_user'),
-            'PASSWORD': os.getenv('DB_PASSWORD', 'canban_password'),
-            'HOST': os.getenv('DB_HOST', 'db'),
-            'PORT': os.getenv('DB_PORT', '5432'),
+            'NAME': db_name,
+            'USER': db_user,
+            'PASSWORD': db_password,
+            'HOST': db_host or 'db',  # Only use 'db' as fallback for local development
+            'PORT': db_port,
         }
     }
+    
+    if IS_RAILWAY:
+        DATABASES['default']['OPTIONS'] = {
+            'sslmode': 'require'
+        }
 
 
 # Password validation
