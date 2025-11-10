@@ -59,6 +59,8 @@ The PostgreSQL database is accessible at:
 
 ## Features
 
+- **Google SSO Authentication**: Sign in with your Google account
+- **User-specific Tasks**: Each user sees and manages only their own tasks
 - **Kanban Board**: Drag-and-drop task management with three columns (To Do, In Progress, Done)
 - **Task Management**: Create, edit, and delete tasks with priorities and due dates
 - **Modern UI**: Beautiful, responsive design with smooth animations
@@ -89,6 +91,10 @@ Edit `.env` file to configure:
 - `SECRET_KEY`: Django secret key (change in production!)
 - `DATABASE_URL`: PostgreSQL connection string
 - `ALLOWED_HOSTS`: Comma-separated list of allowed hosts
+- `GOOGLE_OAUTH_CLIENT_ID`: Google OAuth 2.0 Client ID (for Google SSO)
+- `GOOGLE_OAUTH_CLIENT_SECRET`: Google OAuth 2.0 Client Secret (for Google SSO)
+
+**Note**: See [GOOGLE_OAUTH_SETUP.md](GOOGLE_OAUTH_SETUP.md) for detailed Google OAuth setup instructions.
 
 ## Stopping the Containers
 

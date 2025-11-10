@@ -1,13 +1,16 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
+from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from .models import Task
 
 
+@login_required
 def kanban_board(request):
     """Display the kanban board with all tasks organized by status"""
-    tasks = Task.objects.all()
+    # Filter tasks by current user
+    tasks = Task.objects.filter(user=request.user)
     
     # Organize tasks by status
     tasks_by_status = {
@@ -18,11 +21,13 @@ def kanban_board(request):
     
     return render(request, 'tasks/kanban_board.html', {
         'tasks_by_status': tasks_by_status,
-        'today': timezone.now().date()
+        'today': timezone.now().date(),
+        'user': request.user
     })
 
 
 @require_http_methods(["POST"])
+@login_required
 def create_task(request):
     """Create a new task"""
     title = request.POST.get('title', '').strip()
@@ -33,6 +38,7 @@ def create_task(request):
     
     if title:
         task = Task.objects.create(
+            user=request.user,  # Assign task to current user
             title=title,
             description=description,
             status=status,
@@ -56,9 +62,11 @@ def create_task(request):
 
 
 @require_http_methods(["POST"])
+@login_required
 def update_task_status(request, task_id):
     """Update task status (for drag and drop)"""
-    task = get_object_or_404(Task, id=task_id)
+    # Only allow updating own tasks
+    task = get_object_or_404(Task, id=task_id, user=request.user)
     new_status = request.POST.get('status')
     
     if new_status in dict(Task.STATUS_CHOICES).keys():
@@ -70,9 +78,11 @@ def update_task_status(request, task_id):
 
 
 @require_http_methods(["POST"])
+@login_required
 def delete_task(request, task_id):
     """Delete a task"""
-    task = get_object_or_404(Task, id=task_id)
+    # Only allow deleting own tasks
+    task = get_object_or_404(Task, id=task_id, user=request.user)
     task.delete()
     
     if request.headers.get('Content-Type') == 'application/json':
@@ -81,9 +91,11 @@ def delete_task(request, task_id):
 
 
 @require_http_methods(["POST"])
+@login_required
 def update_task(request, task_id):
     """Update task details"""
-    task = get_object_or_404(Task, id=task_id)
+    # Only allow updating own tasks
+    task = get_object_or_404(Task, id=task_id, user=request.user)
     
     task.title = request.POST.get('title', task.title).strip()
     task.description = request.POST.get('description', task.description).strip()

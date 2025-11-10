@@ -10,10 +10,23 @@
 <body>
     <div class="container">
         <header>
-            <h1>📋 Daily Tasks Kanban Board</h1>
-            <button class="btn-add" onclick="openAddModal()">+ Add Task</button>
+            <div class="header-left">
+                <h1>📋 Daily Tasks Kanban Board</h1>
+                {% if user.is_authenticated %}
+                    <span class="user-info">Welcome, {{ user.email|default:user.username }}!</span>
+                {% endif %}
+            </div>
+            <div class="header-right">
+                {% if user.is_authenticated %}
+                    <button class="btn-add" onclick="openAddModal()">+ Add Task</button>
+                    <a href="{% url 'account_logout' %}" class="btn-logout">Logout</a>
+                {% else %}
+                    <a href="{% url 'account_login' %}" class="btn-login">Login with Google</a>
+                {% endif %}
+            </div>
         </header>
 
+        {% if user.is_authenticated %}
         <div class="kanban-board">
             <!-- To Do Column -->
             <div class="column" data-status="todo">
@@ -60,8 +73,18 @@
                 </div>
             </div>
         </div>
+        {% else %}
+        <div class="login-prompt" style="text-align: center; padding: 60px 20px; background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); margin-top: 20px;">
+            <h2 style="color: #667eea; margin-bottom: 20px;">Please sign in to view your tasks</h2>
+            <p style="color: #6c757d; margin-bottom: 30px;">Sign in with Google to start managing your daily tasks</p>
+            <a href="/accounts/google/login/?process=login" class="btn-login" style="font-size: 1.1rem; padding: 15px 40px;">
+                🔐 Sign in with Google
+            </a>
+        </div>
+        {% endif %}
     </div>
 
+    {% if user.is_authenticated %}
     <!-- Add Task Modal -->
     <div id="addModal" class="modal">
         <div class="modal-content">
@@ -136,6 +159,7 @@
             </form>
         </div>
     </div>
+    {% endif %}
 
     <script>
         // Get CSRF token from cookie
