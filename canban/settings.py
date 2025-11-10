@@ -51,12 +51,34 @@ IS_RAILWAY_DEPLOY = (
     railway_domain is not None
 )
 
+# Configure CSRF trusted origins
+csrf_origins_env = os.getenv('CSRF_TRUSTED_ORIGINS')
+if csrf_origins_env:
+    CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in csrf_origins_env.split(',')]
+else:
+    CSRF_TRUSTED_ORIGINS = []
+
 if IS_RAILWAY_DEPLOY:
     # Allow all Railway subdomains
     if '.railway.app' not in ALLOWED_HOSTS:
         ALLOWED_HOSTS.append('.railway.app')
     if '.up.railway.app' not in ALLOWED_HOSTS:
         ALLOWED_HOSTS.append('.up.railway.app')
+    
+    # Configure CSRF trusted origins for Railway
+    # Note: Wildcards don't work in CSRF_TRUSTED_ORIGINS, so we use the specific domain
+    if railway_domain:
+        origin = f'https://{railway_domain}'
+        if origin not in CSRF_TRUSTED_ORIGINS:
+            CSRF_TRUSTED_ORIGINS.append(origin)
+    
+    # Also check if ALLOWED_HOSTS contains Railway domains and add them
+    for host in ALLOWED_HOSTS:
+        if host.endswith('.railway.app') or host.endswith('.up.railway.app'):
+            if not host.startswith('.'):  # Skip wildcard entries
+                origin = f'https://{host}'
+                if origin not in CSRF_TRUSTED_ORIGINS:
+                    CSRF_TRUSTED_ORIGINS.append(origin)
 
 
 # Application definition

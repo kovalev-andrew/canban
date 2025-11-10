@@ -40,7 +40,7 @@ if [ $COLLECTSTATIC_EXIT_CODE -ne 0 ]; then
     echo "Continuing anyway..."
 else
     echo "=== Static files collected successfully ==="
-    echo "Static files location: $(python -c 'from django.conf import settings; print(settings.STATIC_ROOT)')"
+    echo "Static files location: /app/staticfiles"
 fi
 
 # Start server
