@@ -31,13 +31,16 @@ fi
 
 # Collect static files
 echo "=== Collecting static files ==="
-python manage.py collectstatic --noinput
+python manage.py collectstatic --noinput --clear
 COLLECTSTATIC_EXIT_CODE=$?
 
 if [ $COLLECTSTATIC_EXIT_CODE -ne 0 ]; then
-    echo "WARNING: Static files collection failed, continuing..."
+    echo "ERROR: Static files collection failed with exit code $COLLECTSTATIC_EXIT_CODE"
+    echo "This may cause 404 errors for CSS/JS files in production"
+    echo "Continuing anyway..."
 else
     echo "=== Static files collected successfully ==="
+    echo "Static files location: $(python -c 'from django.conf import settings; print(settings.STATIC_ROOT)')"
 fi
 
 # Start server
